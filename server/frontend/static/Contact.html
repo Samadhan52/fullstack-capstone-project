@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Contact Us</title>
+
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+
+<!-- MAIN CONTACT CARD -->
+<div class="card" style="width:80%; margin:auto; margin-top:5%;">
+
+    <!-- BANNER -->
+    <div class="banner">
+        <img src="{% static 'cars.jpeg' %}" alt="Cars">
+        <h1 class="title">Contact Us</h1>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="row">
+
+        <!-- ICON -->
+        <div style="flex:1; text-align:center;">
+            <img src="{% static 'contactus.png' %}" class="img_icon" alt="Contact Icon">
+        </div>
+
+        <!-- DETAILS -->
+        <div class="details" style="flex:2;">
+            <p><b>Contact Customer Service</b><br>support@bestcars.com</p>
+            <p><b>National Advertising</b><br>NationalSales@bestcars.com</p>
+            <p><b>Public Relations</b><br>PR@bestcars.com</p>
+            <p><b>Office</b><br>312-611-1111</p>
+            <p>
+                Become a car dealer<br>
+                <a href="#">growwithbestcars.com</a>
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
