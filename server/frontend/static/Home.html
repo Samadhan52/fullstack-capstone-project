@@ -6,9 +6,23 @@
   <link rel="stylesheet" href="static/bootstrap.min.css">
 <script>
 
-const logout = async (e) => {
-//Include the code for logout here.
+const logout = async () => {
+  let logout_url = window.location.origin + "/djangoapp/logout";
+
+  const res = await fetch(logout_url, {
+    method: "GET",
+    credentials: "include"
+  });
+
+  const json = await res.json();
+
+  if (json) {
+    sessionStorage.removeItem("username");
+    alert("Logged out successfully");
+    window.location.href = window.location.origin;
+  }
 };
+
 
 let checkSession = ()=>{
   let curr_user = sessionStorage.getItem("username");
