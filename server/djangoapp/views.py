@@ -103,28 +103,66 @@ def get_dealer_details(request, dealer_id):
 # Create a `get_dealer_details` view to render the dealer details
 def get_dealer_reviews(request, dealer_id):
     # if dealer id has been provided
-    if(dealer_id):
-        endpoint = "/fetchReviews/dealer/"+str(dealer_id)
-        reviews = get_request(endpoint)
+    if dealer_id:
+        endpoint = "/fetchReviews/dealer/" + str(dealer_id)
+        response_data = get_request(endpoint)
+        
+        # Debug: Check what type of data we're getting
+        print(f"Response type: {type(response_data)}")
+        print(f"Response content: {response_data}")
+        
+        # Check if response_data is a string and needs to be parsed
+        if isinstance(response_data, str):
+            try:
+                # Try to parse the string as JSON
+                reviews = json.loads(response_data)
+            except json.JSONDecodeError:
+                # If it's not valid JSON, return an empty list
+                print(f"Failed to parse JSON from response: {response_data[:100]}")
+                return JsonResponse({"status": 200, "reviews": []})
+        else:
+            # If it's already parsed (dict/list), use it directly
+            reviews = response_data
+        
+        # Make sure reviews is a list
+        if not isinstance(reviews, list):
+            # If it's a single review dict, wrap it in a list
+            if isinstance(reviews, dict):
+                reviews = [reviews]
+            else:
+                reviews = []
+        
+        # Analyze sentiment for each review
         for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail['review'])
-            print(response)
-            review_detail['sentiment'] = response['sentiment']
-        return JsonResponse({"status":200,"reviews":reviews})
+            try:
+                if 'review' in review_detail:
+                    response = analyze_review_sentiments(review_detail['review'])
+                    if response and 'sentiment' in response:
+                        review_detail['sentiment'] = response['sentiment']
+                    else:
+                        review_detail['sentiment'] = 'neutral'
+                else:
+                    review_detail['sentiment'] = 'neutral'
+            except Exception as e:
+                print(f"Error analyzing sentiment: {e}")
+                review_detail['sentiment'] = 'neutral'
+        
+        return JsonResponse({"status": 200, "reviews": reviews})
     else:
-        return JsonResponse({"status":400,"message":"Bad Request"})
-
+        return JsonResponse({"status": 400, "message": "Bad Request"})
 # Create a `add_review` view to submit a review
+@csrf_exempt
 def add_review(request):
-    if(request.user.is_anonymous == False):
+    if not request.user.is_anonymous:
         data = json.loads(request.body)
         try:
-            response = post_review(data)
-            return JsonResponse({"status":200})
-        except:
-            return JsonResponse({"status":401,"message":"Error in posting review"})
+            post_review(data)
+            return JsonResponse({"status": 200})
+        except Exception as e:
+            return JsonResponse({"status": 401, "message": str(e)})
     else:
-        return JsonResponse({"status":403,"message":"Unauthorized"})
+        return JsonResponse({"status": 403, "message": "Unauthorized"})
+
 def get_cars(request):
     count = CarMake.objects.filter().count()
     print(count)
