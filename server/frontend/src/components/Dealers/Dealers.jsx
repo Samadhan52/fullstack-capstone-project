@@ -6,54 +6,54 @@ import review_icon from "../assets/reviewicon.png";
 
 const Dealers = () => {
   const [dealersList, setDealersList] = useState([]);
-  const [dealersListOriginal, setDealersListOriginal] = useState([]);
+  const [originalDealers, setOriginalDealers] = useState([]);
   const [states, setStates] = useState([]);
-  const [selectedState, setSelectedState] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const isLoggedIn = sessionStorage.getItem("username") != null;
+  const isLoggedIn = sessionStorage.getItem("username") !== null;
 
-  // Fetch all dealers
+  // Fetch dealers
   const getDealers = async () => {
     try {
-        const res = await fetch(
-            "https://u31241596-3030.theiadockernext-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/fetchDealers"
-          );
-          
+      const res = await fetch(
+        "https://u31241596-3030.theiadockernext-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/fetchDealers"
+      );
       const data = await res.json();
-      console.log("Dealers API response:", data);
 
       if (Array.isArray(data)) {
         setDealersList(data);
-        setDealersListOriginal(data); // save full list for filtering
-        const uniqueStates = Array.from(new Set(data.map((d) => d.state)));
+        setOriginalDealers(data);
+
+        const uniqueStates = [...new Set(data.map(d => d.state))];
         setStates(uniqueStates);
       } else {
-        console.warn("Unexpected data format:", data);
         setDealersList([]);
-        setDealersListOriginal([]);
-        setStates([]);
+        setOriginalDealers([]);
       }
-    } catch (err) {
-      console.error("Error fetching dealers:", err);
+    } catch (error) {
+      console.error("Error fetching dealers:", error);
       setDealersList([]);
-      setDealersListOriginal([]);
-      setStates([]);
+      setOriginalDealers([]);
     }
   };
 
-  // Filter dealers in-memory
-  const filterDealers = (state) => {
-    setSelectedState(state);
+  // 🔍 Handle typing in search box
+  const handleInputChange = (event) => {
+    const query = event.target.value;
+    setSearchQuery(query);
 
-    if (state === "All" || state === "") {
-      setDealersList(dealersListOriginal);
-      return;
-    }
-
-    const filtered = dealersListOriginal.filter(
-      (dealer) => dealer.state === state
+    const filtered = originalDealers.filter(dealer =>
+      dealer.state.toLowerCase().includes(query.toLowerCase())
     );
+
     setDealersList(filtered);
+  };
+
+  // 🔄 Reset list when input loses focus & empty
+  const handleLostFocus = () => {
+    if (!searchQuery) {
+      setDealersList(originalDealers);
+    }
   };
 
   useEffect(() => {
@@ -73,26 +73,19 @@ const Dealers = () => {
             <th>Address</th>
             <th>Zip</th>
             <th>
-              <select
-                name="state"
-                id="state"
-                value={selectedState}
-                onChange={(e) => filterDealers(e.target.value)}
-              >
-                <option value="" disabled hidden>
-                  State
-                </option>
-                <option value="All">All States</option>
-                {states.map((state) => (
-                  <option key={state} value={state}>
-                    {state}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                placeholder="Search states..."
+                value={searchQuery}
+                onChange={handleInputChange}
+                onBlur={handleLostFocus}
+                style={{ padding: "5px", width: "140px" }}
+              />
             </th>
             {isLoggedIn && <th>Review Dealer</th>}
           </tr>
         </thead>
+
         <tbody>
           {dealersList.length === 0 ? (
             <tr>
