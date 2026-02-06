@@ -92,7 +92,7 @@ const Dealer = () => {
       <h4 style={{ color: "grey" }}>
         {dealer.city}, {dealer.address}, Zip - {dealer.zip}, {dealer.state}
       </h4>
-
+        <a href={`/searchcars/${id}`}>SearchCars</a>	
       <div className="reviews_panel">
         {reviews.length === 0 && !unreviewed ? (
           <div>Loading Reviews...</div>
