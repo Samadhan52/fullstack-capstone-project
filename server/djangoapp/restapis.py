@@ -2,7 +2,7 @@
 import requests
 import os
 from dotenv import load_dotenv
-
+import urllib.parse
 load_dotenv()
 
 backend_url = os.getenv(
@@ -12,7 +12,7 @@ sentiment_analyzer_url = os.getenv(
 
 def get_request(endpoint, **kwargs):
     # HARDCODE the correct backend URL
-    CORRECT_BACKEND_URL = "https://u31241596-3030.theiadockernext-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai"
+    CORRECT_BACKEND_URL = "https://u31241596-3030.theiadockernext-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai"
     
     params = ""
     if kwargs:
@@ -40,14 +40,16 @@ def get_request(endpoint, **kwargs):
 # Add code for get requests to back end
 
 def analyze_review_sentiments(text):
-    request_url = sentiment_analyzer_url+"analyze/"+text
     try:
-        # Call get method of requests library with URL and parameters
-        response = requests.get(request_url)
+        encoded_text = urllib.parse.quote(text)
+        print("Sentiment base URL:", sentiment_analyzer_url)
+        request_url = f"{sentiment_analyzer_url}analyze/{encoded_text}"
+        response = requests.get(request_url, timeout=10)
+        response.raise_for_status()
         return response.json()
     except Exception as err:
-        print(f"Unexpected {err=}, {type(err)=}")
-        print("Network exception occurred")
+        print(f"Sentiment analyzer error: {err}")
+        return {"sentiment": "neutral"}
 
 def post_review(data_dict):
     request_url = backend_url+"/insert_review"

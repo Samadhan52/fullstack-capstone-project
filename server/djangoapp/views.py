@@ -93,63 +93,40 @@ def get_dealerships(request, state="All"):
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
 def get_dealer_details(request, dealer_id):
-    if(dealer_id):
-        endpoint = "/fetchDealer/"+str(dealer_id)
-        dealership = get_request(endpoint)
-        return JsonResponse({"status":200,"dealer":dealership})
-    else:
-        return JsonResponse({"status":400,"message":"Bad Request"})
+    endpoint = "/fetchDealers"
+    dealerships = get_request(endpoint)
+
+    if isinstance(dealerships, list):
+        for dealer in dealerships:
+            if dealer.get("id") == int(dealer_id):
+                return JsonResponse({"status": 200, "dealer": dealer})
+
+    return JsonResponse({"status": 404, "message": "Dealer not found"})
+
+
+
 
 # Create a `get_dealer_details` view to render the dealer details
 def get_dealer_reviews(request, dealer_id):
-    # if dealer id has been provided
     if dealer_id:
         endpoint = "/fetchReviews/dealer/" + str(dealer_id)
-        response_data = get_request(endpoint)
-        
-        # Debug: Check what type of data we're getting
-        print(f"Response type: {type(response_data)}")
-        print(f"Response content: {response_data}")
-        
-        # Check if response_data is a string and needs to be parsed
-        if isinstance(response_data, str):
-            try:
-                # Try to parse the string as JSON
-                reviews = json.loads(response_data)
-            except json.JSONDecodeError:
-                # If it's not valid JSON, return an empty list
-                print(f"Failed to parse JSON from response: {response_data[:100]}")
-                return JsonResponse({"status": 200, "reviews": []})
-        else:
-            # If it's already parsed (dict/list), use it directly
-            reviews = response_data
-        
-        # Make sure reviews is a list
+        reviews = get_request(endpoint)
+
         if not isinstance(reviews, list):
-            # If it's a single review dict, wrap it in a list
-            if isinstance(reviews, dict):
-                reviews = [reviews]
-            else:
-                reviews = []
-        
-        # Analyze sentiment for each review
-        for review_detail in reviews:
+            reviews = []
+
+        for review in reviews:
             try:
-                if 'review' in review_detail:
-                    response = analyze_review_sentiments(review_detail['review'])
-                    if response and 'sentiment' in response:
-                        review_detail['sentiment'] = response['sentiment']
-                    else:
-                        review_detail['sentiment'] = 'neutral'
-                else:
-                    review_detail['sentiment'] = 'neutral'
-            except Exception as e:
-                print(f"Error analyzing sentiment: {e}")
-                review_detail['sentiment'] = 'neutral'
-        
+                sentiment = analyze_review_sentiments(review["review"])
+                review["sentiment"] = sentiment.get("sentiment", "neutral")
+            except:
+                review["sentiment"] = "neutral"
+
         return JsonResponse({"status": 200, "reviews": reviews})
-    else:
-        return JsonResponse({"status": 400, "message": "Bad Request"})
+
+    return JsonResponse({"status": 400, "message": "Bad Request"})
+
+
 # Create a `add_review` view to submit a review
 @csrf_exempt
 def add_review(request):

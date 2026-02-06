@@ -15,9 +15,10 @@ const Dealers = () => {
   // Fetch all dealers
   const getDealers = async () => {
     try {
-      const res = await fetch(
-        "https://u31241596-3030.theiadockernext-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/fetchDealers"
-      );
+        const res = await fetch(
+            "https://u31241596-3030.theiadockernext-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/fetchDealers"
+          );
+          
       const data = await res.json();
       console.log("Dealers API response:", data);
 
